@@ -1,0 +1,19 @@
+Decrypt keepass database v3-0x67 ONLY
+
+Features:
+  - Optional secret keyfile supported
+  - URL quick open in browser
+  - Username/password copy and clear
+  - Pure CLI, colorful output
+
+Requirements:
+  - Python >= 3.6
+  - PyCryptodomex >= 3.8 (https://pypi.org/project/pycryptodomex)
+  - `firefox` as default browser
+  - `xclip -sel c` as clipboard
+
+Credits:
+  - https://gist.github.com/msmuenchen/9318327
+  - https://github.com/libkeepass/libkeepass/tree/master/libkeepass
+  - https://github.com/lgg/awesome-keepass#docs-and-articles
+  - https://github.com/Evidlo/examples/blob/master/python/kdbx3_decrypt.py
