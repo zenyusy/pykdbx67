@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+import sys
 import logging
 import argparse
 from struct import unpack
@@ -50,7 +52,9 @@ def final_key(rollkey: bytes, rounds: int, rollseed: bytes, mainseed: bytes) -> 
 def head2dict(f) -> dict:
     '''Parse kdbx header part '''
     sig, ver = unpack('<8sI', f.read(12))
-    assert sig == goodsig, 'kdbx not supported'
+    if sig != goodsig:
+        logging.error('kdbx not supported')
+        sys.exit(1)
     logging.info(f'ver {hex(ver)}')
 
     head = {}
@@ -61,8 +65,12 @@ def head2dict(f) -> dict:
             break
         head[index] = data
 
-    assert head[2] == cipher_AES, 'cipher not AES'
-    assert head[10] == inner_Salsa20, 'stream cipher not Salsa20'
+    if head[2] != cipher_AES:
+        logging.error('cipher not AES')
+        sys.exit(1)
+    if head[10] != inner_Salsa20:
+        logging.error('stream cipher not Salsa20')
+        sys.exit(1)
     logging.info('\n'.join(f'{head_map[i]} {head[i]}' for i in head))
     return head
 
@@ -76,7 +84,9 @@ def decbody(hd:dict, f, secpsw, secfile) -> bytes:
             hd[4]),
         AES.MODE_CBC,
         hd[7])
-    assert aes.decrypt(f.read(len(hd[9]))) == hd[9], 'decryption error'
+    if aes.decrypt(f.read(len(hd[9]))) != hd[9]:
+        logging.error('decryption error')
+        sys.exit(1)
     return aes.decrypt(f.read())
 
 def body2xml(body: bytes, is_compressed) -> ET.Element:
@@ -97,7 +107,9 @@ def body2xml(body: bytes, is_compressed) -> ET.Element:
         offset += blk_sz
 
         data = body[offset:offset+size]
-        assert sha256(data).digest() == chk, 'body corrupted'
+        if sha256(data).digest() != chk:
+            logging.error('body corrupted')
+            sys.exit(1)
         offset += size
         ret += data
     return ET.fromstring((decompress(ret, 31) if is_compressed else ret).decode())[1]
