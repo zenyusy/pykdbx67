@@ -2,6 +2,7 @@
 import sys
 import logging
 import argparse
+from shutil import which
 from struct import unpack
 from hashlib import sha256
 from zlib import decompress
@@ -11,8 +12,14 @@ import xml.etree.ElementTree as ET
 from subprocess import run, DEVNULL
 from Cryptodome.Cipher import AES, Salsa20
 
-web = 'firefox'
-clip = ['xclip', '-sel', 'c']
+web = which('firefox') or (
+        logging.error('please specify a working browser'),
+        sys.exit(1))
+
+clip = which('xclip') or (
+        logging.error('please specify the clipboard command'),
+        sys.exit(1))
+clip = [clip, '-sel', 'c']
 
 class clr:
     PURPLE = '\033[95m'

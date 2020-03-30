@@ -9,8 +9,8 @@ Features:
 Requirements:
   - Python >= 3.6
   - PyCryptodomex >= 3.8 (https://pypi.org/project/pycryptodomex)
-  - `firefox` as default browser
-  - `xclip -sel c` as clipboard
+  - `firefox` as default browser (or manully specify another one)
+  - `xclip -sel c` as clipboard (or manully specify another cmd)
 
 Credits:
   - https://gist.github.com/msmuenchen/9318327
