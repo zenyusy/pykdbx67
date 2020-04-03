@@ -145,8 +145,8 @@ def xml2lst(xml: ET.Element, key) -> list:
                 for psw in entry.findall(".//Value[@Protected='True']"):
                     # psw may be empty
                     t = psw.text and ss.decrypt(b64decode(psw.text))
-                    pln = pln or t
-            else:
+                    pln = pln or psw.text==pair[1].text and t
+            elif not pair[1].attrib.get('Protected', False):
                 kv[pair[0].text] = pair[1].text
         ret.append((kv, pln,))
     return ret
