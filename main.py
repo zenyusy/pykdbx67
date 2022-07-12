@@ -96,7 +96,7 @@ def decbody(hd:dict, f, secpsw, secfile) -> bytes:
         sys.exit(1)
     return aes.decrypt(f.read())
 
-def body2xml(body: bytes, is_compressed) -> ET.Element:
+def body2xml(body: bytes, is_compressed, to_save: str) -> ET.Element:
     '''Parse AES-decrypted body to xml,
     where inner psw still Salsa20-encrypted.
     '''
@@ -119,7 +119,16 @@ def body2xml(body: bytes, is_compressed) -> ET.Element:
             sys.exit(1)
         offset += size
         ret += data
-    return ET.fromstring((decompress(ret, 31) if is_compressed else ret).decode())[1]
+    if is_compressed:
+        ret = decompress(ret, 31)
+    if to_save:
+        try:
+            with open(to_save, 'wb') as fbout:
+                fbout.write(ret)
+                logging.warning('[unsafe] xml saved to %s', to_save)
+        except Exception as e:
+            logging.error('err when saving xml: %s', e)
+    return ET.fromstring(ret.decode())[1]
 
 def xml2lst(xml: ET.Element, key) -> list:
     '''Restruct the root xml of kdbx to key-val pairs,
@@ -207,6 +216,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('db', help='the kdbx database')
     parser.add_argument('-k', '--keyfile', help='the key file')
+    parser.add_argument('-s', '--save', help='save xml (unsafe)')
+    parser.add_argument('-x', '--xml', help='recover from an (unsafe) xml file')
     parser.add_argument('-o', '--header', action='store_true', help='only show header and quit')
     parser.add_argument('-v', '--verbose', action='store_true')
     args = parser.parse_args()
@@ -216,9 +227,11 @@ if __name__ == '__main__':
     with open(args.db, 'rb') as f:
         hd = head2dict(f)
         if not args.header:
+            # TODO safesave(args.save)
             sl(xml2lst(
-                    body2xml(
+                    ET.parse(args.xml).getroot()[1] if args.xml else body2xml(
                         decbody(hd, f, getpass().encode(), args.keyfile),
-                        unpack('<I', hd[3])),
+                        unpack('<I', hd[3]),
+                        args.save),
                     hd[8]))
 
